@@ -3,14 +3,52 @@
 import { Card } from "@/components/ui/card";
 import { Loader2, Gamepad2, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Playground() {
+  useEffect(() => {
+    async function loadIcons() {
+      try {
+        const res = await fetch(
+          "https://api.iconify.design/collection?prefix=fluent-emoji-flat"
+        );
+
+        const data = await res.json();
+        console.log("Full data:", data);
+
+        // categories is like: { "Animals & Nature": ["dog", "cat"], ... }
+        const categories = data.categories || {};
+
+        let merged: string[] = [];
+
+        // Loop each category
+        for (const categoryName in categories) {
+          const arr = categories[categoryName]; // array of icon names
+          merged = merged.concat(arr);
+        }
+
+        // Remove duplicates just in case
+        merged = [...new Set(merged)];
+
+        setIcons(merged);
+      } catch (err) {
+        console.error("Error fetching icons:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadIcons();
+  }, []);
+  const [icons, setIcons] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const configRaw = searchParams.get("config");
 
   // For iframe testing we will manually swap game src until AI wiring is ready
-  const [gameSrc, setGameSrc] = useState("/games/jump.html");
+  const [gameSrc, setGameSrc] = useState(
+    "http://localhost:3000/games/falling.html?playerColor=red&playerIcon=https://api.iconify.design/fluent-emoji-flat/dog.svg&blockIcon=https://api.iconify.design/fluent-emoji-flat/rocket.svg"
+  );
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-white overflow-hidden">
@@ -45,7 +83,8 @@ export default function Playground() {
         </Card>
 
         {/* Game area */}
-        <Card className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur shadow-2xl max-w-3xl mx-auto w-full">
+        {/* Game area */}
+        <Card className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 backdrop-blur shadow-2xl mx-auto w-full max-w-5xl">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Gamepad2 className="w-5 h-5 text-orange-300" />
@@ -75,8 +114,8 @@ export default function Playground() {
             </div>
           </div>
 
-          {/* Iframe container */}
-          <div className="w-full h-[480px] bg-slate-950 rounded-xl border border-slate-800 overflow-hidden shadow-inner flex items-center justify-center">
+          {/* Game iframe container */}
+          <div className="w-full max-w-[1100px] h-[500px] mx-auto bg-slate-950/90 rounded-2xl border border-slate-800 shadow-[0_0_40px_rgba(0,0,0,0.45)] overflow-hidden flex items-center justify-center backdrop-blur">
             {gameSrc ? (
               <iframe
                 src={gameSrc}
@@ -86,7 +125,7 @@ export default function Playground() {
             ) : (
               <div className="flex flex-col items-center gap-3 text-slate-400">
                 <Loader2 className="w-6 h-6 animate-spin" />
-                <span className="text-xs">Loading game…</span>
+                <span className="text-xs">Pick a test game above</span>
               </div>
             )}
           </div>
