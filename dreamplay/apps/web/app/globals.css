@@ -12,3 +12,19 @@
 .animate-gradient-shimmer {
   animation: gradient-shimmer 3s linear infinite;
 }
+
+[data-sonner-toast] {
+  backdrop-filter: blur(16px);
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+}
+
+[data-sonner-toast] [data-title] {
+  background: linear-gradient(to right, #fb923c, #a855f7, #34d399);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+[data-sonner-toast] [data-description] {
+  color: #cbd5e1;
+}

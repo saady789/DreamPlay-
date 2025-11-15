@@ -1,4 +1,6 @@
 "use client";
+import "../page.module.css";
+import { toast } from "sonner";
 
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -60,6 +62,7 @@ export default function Chat() {
   const [isSuggestionFading, setIsSuggestionFading] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [newisLoading, setnewisLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
 
@@ -153,21 +156,91 @@ export default function Chat() {
     advanceSuggestion();
   };
 
-  const handleSubmit = () => {
-    const trimmed = prompt.trim();
-    if (!trimmed) return;
+  //   const handleSubmit = () => {
+  //     const trimmed = prompt.trim();
+  //     if (!trimmed) return;
 
-    setSelectedPrompt(trimmed);
-    setIsLoading(true);
+  //     console.log("Submitting prompt:", trimmed);
+
+  //     setSelectedPrompt(trimmed);
+  //     setIsLoading(true);
+  //   };
+
+  const handleSubmit = async () => {
+    const trimmed = prompt.trim();
+    if (!trimmed) {
+      toast.error("Write your game idea first", {
+        description:
+          "A hero, an action, an item to collect, an obstacle, keep it simple",
+      });
+      return;
+    }
+
+    console.log("Submitting prompt:", trimmed);
+
+    try {
+      setnewisLoading(true);
+      const res = await fetch("/api/refine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: trimmed }),
+      });
+
+      if (!res.ok) {
+        toast.error("Server error", {
+          description: "The engine could not process your idea",
+          className:
+            "bg-slate-950/90 border border-red-500/40 text-red-300 rounded-xl backdrop-blur-xl shadow-[0_0_22px_rgba(239,68,68,0.35)]",
+        });
+        return;
+      }
+      const data = await res.json();
+
+      console.log("Refine API response:", data);
+
+      // If AI says the idea cannot be converted into a simple game
+      if (data.status === 0) {
+        toast.warning("Idea too vague", {
+          description: data.text,
+          className:
+            "bg-slate-900/85 border border-yellow-400/30 text-yellow-200 rounded-xl backdrop-blur-xl shadow-[0_0_22px_rgba(250,204,21,0.35)]",
+        });
+
+        setIsLoading(false);
+        setnewisLoading(false);
+        //alert(data.text); // show human friendly explanation
+        return;
+      }
+
+      setnewisLoading(false);
+
+      // If valid game idea
+      // Save the refined idea if you want
+      // setRefinedPrompt(data.text);
+      // setChosenGame(data.chosen_game);
+
+      // Now continue to your loading screen + redirect logic
+      // Or whatever code came after old handleSubmit
+      //setIsLoading(true); // your existing loading overlay
+
+      // continue your existing pipeline...
+      // router.push(...) OR whatever you used previously
+    } catch (err) {
+      console.error("Error calling refine API:", err);
+      //alert("Network error. Please try again.");
+    } finally {
+      // You can decide whether to end loading or keep it on
+      // depending on your pipeline logic
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (!isLoading && prompt.trim()) {
-        handleSubmit();
-      }
-    }
+    // if (e.key === "Enter") {
+    //   e.preventDefault();
+    //   if (!isLoading && prompt.trim()) {
+    //     handleSubmit();
+    //   }
+    // }
   };
 
   const isLaunchDisabled = isLoading || !prompt.trim();
@@ -289,7 +362,7 @@ export default function Chat() {
                 <span>Describe your tiny game in one sentence</span>
               </div>
 
-              <div className="relative flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 focus-within:border-purple-500/70 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-all">
+              {/* <div className="relative flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 focus-within:border-purple-500/70 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-all">
                 <input
                   ref={inputRef}
                   type="text"
@@ -305,11 +378,42 @@ export default function Chat() {
                   type="button"
                   size="icon"
                   onClick={handleSubmit}
-                  disabled={isLaunchDisabled}
+                  disabled={isLaunchDisabled || newisLoading}
                   className="cursor-pointer m-1 rounded-xl bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Rocket className="w-5 h-5" />
                 </Button>
+              </div> */}
+
+              <div className="relative flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 focus-within:border-purple-500/70 focus-within:shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-all">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="flex-1 bg-transparent outline-none px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500"
+                  placeholder='Example: "Make a game where a cat jumps over lasers and collects stars"'
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                />
+
+                <div className="h-8 w-px bg-slate-700" />
+
+                <div className="flex items-center gap-2 pr-3">
+                  <Button
+                    type="button"
+                    size="icon"
+                    onClick={handleSubmit}
+                    disabled={isLaunchDisabled || newisLoading}
+                    className="cursor-pointer m-1 rounded-xl bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Rocket className="w-5 h-5" />
+                  </Button>
+
+                  {newisLoading && (
+                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between text-xs text-slate-500">
