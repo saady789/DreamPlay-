@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Avoid the Falling Blocks</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        overflow: hidden;
+        font-family: sans-serif;
+        color: white;
+      }
+
+      #game {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: #1e293b;
+        overflow: hidden;
+      }
+
+      .player,
+      .block {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .objIcon {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .player {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        background: #38bdf8;
+        left: 80px;
+        top: 60vh;
+      }
+
+      .block {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #fb923c;
+      }
+
+      .score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        z-index: 20;
+      }
+
+      .winBanner,
+      .lessonBanner {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 32px;
+        font-weight: bold;
+        color: #38bdf8;
+        display: none;
+        z-index: 50;
+        padding: 20px 30px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.45);
+        max-width: 700px;
+        text-align: center;
+      }
+
+      #resumeBtn {
+        display: none;
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 24px;
+        background: #38bdf8;
+        color: #0f172a;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 60;
+        border: none;
+      }
+
+      /* Right side control panel */
+      #controlPanel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 15px;
+        border-radius: 10px;
+        width: 280px;
+        z-index: 30;
+      }
+
+      #controlPanel h3 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #38bdf8;
+        text-align: center;
+      }
+
+      .control-group {
+        margin-bottom: 10px;
+      }
+
+      label {
+        font-size: 13px;
+        display: block;
+        margin-bottom: 2px;
+        color: #94a3b8;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background: #38bdf8;
+        border: none;
+        color: #0f172a;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #7dd3fc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="game">
+      <div id="player" class="player"></div>
+      <div id="score" class="score">Time: 0.0 s</div>
+
+      <div id="winBanner" class="winBanner">Nice dodging</div>
+      <div id="lessonBanner" class="lessonBanner"></div>
+      <button id="resumeBtn">Resume</button>
+
+      <div id="controlPanel">
+        <h3>Game Controls</h3>
+
+        <div class="control-group">
+          <label>Player speed (<span id="playerSpeedVal"></span>)</label>
+          <input type="range" id="playerSpeed" min="3" max="20" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Player size (<span id="playerSizeVal"></span> px)</label>
+          <input type="range" id="playerSize" min="30" max="90" step="5" />
+        </div>
+
+        <div class="control-group">
+          <label>Block fall speed (<span id="blockSpeedVal"></span>)</label>
+          <input type="range" id="blockSpeed" min="2" max="20" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Spawn rate (<span id="spawnVal"></span> ms)</label>
+          <input
+            type="range"
+            id="spawnInterval"
+            min="250"
+            max="2000"
+            step="100"
+          />
+        </div>
+
+        <div class="control-group">
+          <label>Block size (<span id="blockSizeVal"></span> px)</label>
+          <input type="range" id="blockSize" min="20" max="80" step="5" />
+        </div>
+
+        <div class="control-group">
+          <label>Max blocks (<span id="maxBlocksVal"></span>)</label>
+          <input type="range" id="maxBlocks" min="5" max="40" step="1" />
+        </div>
+
+        <button id="restartBtn">Restart</button>
+      </div>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+
+      const CONFIG = {
+        // core gameplay parameters
+        playerSpeed: Number(params.get("playerSpeed") || 8),
+        playerSize: Number(params.get("playerSize") || 60),
+        blockSpeed: Number(params.get("blockSpeed") || 6),
+        spawnInterval: Number(params.get("spawnInterval") || 900),
+        blockSize: Number(params.get("blockSize") || 40),
+        maxBlocks: Number(params.get("maxBlocks") || 20),
+
+        // session goals
+        winTime: Number(params.get("winTime") || 30), // seconds to "win"
+        lessonTriggerTime: Number(params.get("lessonTriggerTime") || 8),
+
+        // icons and colors
+        playerIcon: params.get("playerIcon") || "",
+        blockIcon: params.get("blockIcon") || "",
+        backgroundColor: params.get("backgroundColor") || "#1e293b",
+        playerColor: params.get("playerColor") || "#38bdf8",
+        blockColor: params.get("blockColor") || "#fb923c",
+
+        // optional AI lesson text
+        lessonText: params.get("lessonText") || "",
+      };
+
+      const PANEL_SAFE_WIDTH = 320; // keep player and blocks out from under panel
+
+      const game = document.getElementById("game");
+      const player = document.getElementById("player");
+      const scoreEl = document.getElementById("score");
+      const winBanner = document.getElementById("winBanner");
+      const lessonBanner = document.getElementById("lessonBanner");
+      const resumeBtn = document.getElementById("resumeBtn");
+
+      // apply visual config
+      game.style.background = CONFIG.backgroundColor;
+      player.style.width = CONFIG.playerSize + "px";
+      player.style.height = CONFIG.playerSize + "px";
+      player.style.background = CONFIG.playerColor;
+
+      if (CONFIG.playerIcon) {
+        const img = document.createElement("img");
+        img.className = "objIcon";
+        img.src = CONFIG.playerIcon;
+        player.appendChild(img);
+      }
+
+      let timeAlive = 0;
+      let gameRunning = true;
+      let gameWon = false;
+      let lessonShown = false;
+
+      const keys = {};
+      document.addEventListener("keydown", (e) => {
+        keys[e.code] = true;
+      });
+      document.addEventListener("keyup", (e) => {
+        keys[e.code] = false;
+      });
+
+      function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+      }
+
+      function updatePlayer() {
+        let x = parseFloat(player.style.left || "0");
+        let y = parseFloat(player.style.top || "0");
+
+        if (keys["ArrowLeft"] || keys["KeyA"]) {
+          x -= CONFIG.playerSpeed;
+        }
+        if (keys["ArrowRight"] || keys["KeyD"]) {
+          x += CONFIG.playerSpeed;
+        }
+        if (keys["ArrowUp"] || keys["KeyW"]) {
+          y -= CONFIG.playerSpeed;
+        }
+        if (keys["ArrowDown"] || keys["KeyS"]) {
+          y += CONFIG.playerSpeed;
+        }
+
+        const width = game.clientWidth || window.innerWidth;
+        const height = game.clientHeight || window.innerHeight;
+
+        const maxX = Math.max(0, width - CONFIG.playerSize - PANEL_SAFE_WIDTH);
+        const maxY = Math.max(0, height - CONFIG.playerSize);
+
+        x = clamp(x, 0, maxX);
+        y = clamp(y, 0, maxY);
+
+        player.style.left = x + "px";
+        player.style.top = y + "px";
+      }
+
+      function spawnBlock() {
+        const width = game.clientWidth || window.innerWidth;
+        const block = document.createElement("div");
+        block.className = "block";
+
+        block.style.width = CONFIG.blockSize + "px";
+        block.style.height = CONFIG.blockSize + "px";
+        block.style.background = CONFIG.blockColor;
+
+        if (CONFIG.blockIcon) {
+          const img = document.createElement("img");
+          img.className = "objIcon";
+          img.src = CONFIG.blockIcon;
+          block.appendChild(img);
+        }
+
+        const maxX = Math.max(0, width - CONFIG.blockSize - PANEL_SAFE_WIDTH);
+        const x = Math.random() * maxX;
+
+        block.style.left = x + "px";
+        block.style.top = -CONFIG.blockSize + "px";
+
+        game.appendChild(block);
+      }
+
+      function updateBlocks() {
+        const gameRect = game.getBoundingClientRect();
+        const playerRect = player.getBoundingClientRect();
+
+        document.querySelectorAll(".block").forEach((block) => {
+          const currentTop = parseFloat(block.style.top || "0");
+          const newTop = currentTop + CONFIG.blockSpeed;
+          block.style.top = newTop + "px";
+
+          const blockRect = block.getBoundingClientRect();
+
+          // collision detection
+          if (
+            playerRect.left < blockRect.right &&
+            playerRect.right > blockRect.left &&
+            playerRect.top < blockRect.bottom &&
+            playerRect.bottom > blockRect.top
+          ) {
+            gameOver();
+          }
+
+          // remove blocks that fall off screen
+          if (blockRect.top > gameRect.bottom) {
+            block.remove();
+          }
+        });
+      }
+
+      function showLesson() {
+        if (!CONFIG.lessonText) return;
+        if (!gameRunning) return;
+
+        gameRunning = false;
+        lessonShown = true;
+        lessonBanner.textContent = CONFIG.lessonText;
+        lessonBanner.style.display = "block";
+        resumeBtn.style.display = "block";
+      }
+
+      resumeBtn.onclick = () => {
+        lessonBanner.style.display = "none";
+        resumeBtn.style.display = "none";
+        gameRunning = true;
+      };
+
+      //   function winGame() {
+      //     if (gameWon) return;
+      //     gameWon = true;
+      //     gameRunning = false;
+      //     winBanner.style.display = "block";
+      //   }
+
+      function gameOver() {
+        if (!gameRunning) return;
+        gameRunning = false;
+        scoreEl.textContent = "Game over. Time: " + timeAlive.toFixed(1) + " s";
+      }
+
+      // main loop
+      const TICK = 16;
+      setInterval(() => {
+        if (!gameRunning) return;
+
+        timeAlive += TICK / 1000;
+        scoreEl.textContent = "Time: " + timeAlive.toFixed(1) + " s";
+
+        if (
+          !lessonShown &&
+          CONFIG.lessonText &&
+          timeAlive >= CONFIG.lessonTriggerTime
+        ) {
+          showLesson();
+          return;
+        }
+
+        if (!gameWon && timeAlive >= CONFIG.winTime) {
+          winGame();
+          return;
+        }
+
+        updatePlayer();
+        updateBlocks();
+      }, TICK);
+
+      // spawner
+      function startSpawner() {
+        return setInterval(() => {
+          if (!gameRunning) return;
+          const count = document.querySelectorAll(".block").length;
+          if (count >= CONFIG.maxBlocks) return;
+          spawnBlock();
+        }, CONFIG.spawnInterval);
+      }
+
+      let spawnTimer = startSpawner();
+
+      // control panel wiring
+      const playerSpeedInput = document.getElementById("playerSpeed");
+      const playerSizeInput = document.getElementById("playerSize");
+      const blockSpeedInput = document.getElementById("blockSpeed");
+      const spawnInput = document.getElementById("spawnInterval");
+      const blockSizeInput = document.getElementById("blockSize");
+      const maxBlocksInput = document.getElementById("maxBlocks");
+
+      const playerSpeedVal = document.getElementById("playerSpeedVal");
+      const playerSizeVal = document.getElementById("playerSizeVal");
+      const blockSpeedVal = document.getElementById("blockSpeedVal");
+      const spawnVal = document.getElementById("spawnVal");
+      const blockSizeVal = document.getElementById("blockSizeVal");
+      const maxBlocksVal = document.getElementById("maxBlocksVal");
+
+      playerSpeedInput.value = CONFIG.playerSpeed;
+      playerSpeedVal.textContent = CONFIG.playerSpeed;
+
+      playerSizeInput.value = CONFIG.playerSize;
+      playerSizeVal.textContent = CONFIG.playerSize;
+
+      blockSpeedInput.value = CONFIG.blockSpeed;
+      blockSpeedVal.textContent = CONFIG.blockSpeed;
+
+      spawnInput.value = CONFIG.spawnInterval;
+      spawnVal.textContent = CONFIG.spawnInterval;
+
+      blockSizeInput.value = CONFIG.blockSize;
+      blockSizeVal.textContent = CONFIG.blockSize;
+
+      maxBlocksInput.value = CONFIG.maxBlocks;
+      maxBlocksVal.textContent = CONFIG.maxBlocks;
+
+      playerSpeedInput.oninput = () => {
+        CONFIG.playerSpeed = Number(playerSpeedInput.value);
+        playerSpeedVal.textContent = CONFIG.playerSpeed;
+      };
+
+      playerSizeInput.oninput = () => {
+        CONFIG.playerSize = Number(playerSizeInput.value);
+        playerSizeVal.textContent = CONFIG.playerSize;
+        player.style.width = CONFIG.playerSize + "px";
+        player.style.height = CONFIG.playerSize + "px";
+      };
+
+      blockSpeedInput.oninput = () => {
+        CONFIG.blockSpeed = Number(blockSpeedInput.value);
+        blockSpeedVal.textContent = CONFIG.blockSpeed;
+      };
+
+      spawnInput.oninput = () => {
+        CONFIG.spawnInterval = Number(spawnInput.value);
+        spawnVal.textContent = CONFIG.spawnInterval;
+        clearInterval(spawnTimer);
+        spawnTimer = startSpawner();
+      };
+
+      blockSizeInput.oninput = () => {
+        CONFIG.blockSize = Number(blockSizeInput.value);
+        blockSizeVal.textContent = CONFIG.blockSize;
+      };
+
+      maxBlocksInput.oninput = () => {
+        CONFIG.maxBlocks = Number(maxBlocksInput.value);
+        maxBlocksVal.textContent = CONFIG.maxBlocks;
+      };
+
+      document.getElementById("restartBtn").onclick = () => {
+        location.reload();
+      };
+    </script>
+  </body>
+</html>
