@@ -212,7 +212,7 @@
         maxBlocks: Number(params.get("maxBlocks") || 20),
 
         // session goals
-        winTime: Number(params.get("winTime") || 30), // seconds to "win"
+        winTime: 3000, // seconds to "win"
         lessonTriggerTime: Number(params.get("lessonTriggerTime") || 8),
 
         // icons and colors
@@ -386,19 +386,19 @@
         timeAlive += TICK / 1000;
         scoreEl.textContent = "Time: " + timeAlive.toFixed(1) + " s";
 
-        if (
-          !lessonShown &&
-          CONFIG.lessonText &&
-          timeAlive >= CONFIG.lessonTriggerTime
-        ) {
-          showLesson();
-          return;
-        }
+        // if (
+        //   !lessonShown &&
+        //   CONFIG.lessonText &&
+        //   timeAlive >= CONFIG.lessonTriggerTime
+        // ) {
+        //   showLesson();
+        //   return;
+        // }
 
-        if (!gameWon && timeAlive >= CONFIG.winTime) {
-          winGame();
-          return;
-        }
+        // if (!gameWon && timeAlive >= CONFIG.winTime) {
+        //   // winGame();
+        //   // return;
+        // }
 
         updatePlayer();
         updateBlocks();
