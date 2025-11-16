@@ -4,6 +4,8 @@
 
 DreamPlay transforms a child's imagination into playable games and interactive programming lessons. Kids describe a game in one sentence, and DreamPlay builds a complete mini-game that teaches real programming concepts through play.
 
+[Demo Video](https://www.youtube.com/watch?v=SWMdx1jdRAY)
+
 > Built for ages 6-12 • No coding required • Instant feedback • Playful learning
 
 ---
