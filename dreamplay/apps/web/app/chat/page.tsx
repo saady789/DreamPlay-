@@ -45,7 +45,7 @@ const SUGGESTIONS = [
 ];
 
 const LOADING_MESSAGES = [
-  "Locking in your story and hero",
+  "Choosing your hero and story",
   "Building the game world and rules",
   "Designing the teaching moments for this game",
 ];
@@ -305,16 +305,16 @@ export default function Chat() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-            Describe a tiny game and DreamPlay will{" "}
+            Describe a game idea and DreamPlay will{" "}
             <span className="bg-gradient-to-r from-orange-400 via-purple-400 to-emerald-400 text-transparent bg-clip-text bg-[length:200%_auto] animate-gradient-shimmer">
-              turn it into a playable lesson
+              turn it into something you can play
             </span>
           </h1>
 
           <p className="text-lg text-slate-300">
-            A single sentence becomes a full mini game. DreamPlay blends
-            imagination and learning so kids play their idea while picking up
-            real programming thinking through interactions, rules, and outcomes.
+            With one sentence, a kid designs a whole mini game. While playing,
+            DreamPlay highlights the rules behind the scenes so they learn
+            programming without realizing they are learning.
           </p>
 
           <div className="flex flex-wrap gap-3 text-sm text-slate-300">
@@ -491,10 +491,10 @@ export default function Chat() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-slate-100">
-                  Building your tiny game
+                  Making your game come alive
                 </div>
                 <div className="text-xs text-slate-400">
-                  Locking in rules, visuals, and teaching path
+                  Turning your idea into a world you can play and learn from.
                 </div>
               </div>
             </div>
@@ -552,7 +552,7 @@ export default function Chat() {
                 <span>Preparing to open the DreamPlay playground</span>
               </div>
               <div className="text-[11px] text-slate-500">
-                Next: game plus lesson panel
+                Next: playtime plus live tips
               </div>
             </div>
           </Card>

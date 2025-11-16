@@ -53,8 +53,8 @@ export default function Home() {
               FAQ
             </button>
             <Button
-              onClick={() => (window.location.href = "/playground")}
-              className="bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-6"
+              onClick={() => (window.location.href = "/chat")}
+              className="cursor-pointer bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-6"
             >
               Open Playground
             </Button>
@@ -72,23 +72,24 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                Turn kid ideas into{" "}
+                Turn kids ideas into{" "}
                 <span className="bg-gradient-to-r from-orange-400 via-purple-400 to-green-400 text-transparent bg-clip-text">
-                  tiny games
+                  real games
                 </span>{" "}
-                that teach real programming
+                that teach computer programming
               </h1>
+
               <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-                Kids type a short idea and DreamPlay turns it into a tiny
-                browser game. When they change speed, gravity, and rules, they
-                start to see how variables, events, and conditions control what
-                happens on screen.
+                Kids ages 6 to 12 type one idea. DreamPlay turns it into a tiny
+                game and shows how variables, conditions, and events shape
+                everything on screen.
               </p>
+
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
-                  onClick={() => (window.location.href = "/playground")}
+                  onClick={() => (window.location.href = "/chat")}
                   size="lg"
-                  className="bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-8 text-lg"
+                  className=" cursor-pointer bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-8 text-lg"
                 >
                   Open the Playground
                 </Button>
@@ -96,7 +97,7 @@ export default function Home() {
                   onClick={() => scrollToSection("learning")}
                   size="lg"
                   variant="outline"
-                  className="border-2 border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                  className="cursor-pointer border-2 border-purple-500 text-purple-400 hover:bg-purple-500/10"
                 >
                   See How Learning Works
                 </Button>
@@ -167,7 +168,7 @@ export default function Home() {
             How DreamPlay Works
           </h2>
           <p className="text-xl text-slate-400 text-center mb-16 max-w-2xl mx-auto">
-            From kid idea to real learning in four clear steps.
+            From a kid's idea to real learning in four clear steps.
           </p>
 
           <div className="grid md:grid-cols-4 gap-8">
@@ -215,11 +216,12 @@ export default function Home() {
                 <Brain className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-3 text-pink-400">
-                Learning panel explains what changed
+                Live lessons explain what changed
               </h3>
               <p className="text-slate-400">
-                A simple panel tags each game with the ideas it uses like
-                variables, events, collisions, and conditions.
+                A lesson panel pauses the game and explains what kids just did
+                using kid friendly language. It tags each game with ideas like
+                variables, events, collisions, conditions, and timing.
               </p>
             </Card>
           </div>
@@ -233,9 +235,9 @@ export default function Home() {
       >
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
-            Not just play,{" "}
+            A playful way to learn{" "}
             <span className="bg-gradient-to-r from-orange-400 to-purple-400 text-transparent bg-clip-text">
-              real programming ideas
+              programming concepts
             </span>
           </h2>
           <p className="text-xl text-slate-400 text-center mb-16 max-w-3xl mx-auto">
@@ -322,9 +324,8 @@ export default function Home() {
             Why DreamPlay Helps Kids Learn
           </h2>
           <p className="text-xl text-slate-400 text-center mb-16 max-w-3xl mx-auto">
-            Under the hood each game is just configuration. This keeps the
-            system simple to reason about and lets kids focus on logic, not on
-            syntax.
+            Kids experiment with rules, values, and outcomes. That is the core
+            of real programming thinking.
           </p>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -336,8 +337,9 @@ export default function Home() {
                 Concept first
               </h3>
               <p className="text-slate-400">
-                Kids meet ideas like speed, gravity, and conditions in a visual
-                way long before seeing code.
+                Kids meet ideas like speed, gravity, spawn rate, and win
+                conditions in a visual way long before they ever see JavaScript
+                or Python.
               </p>
             </Card>
 
@@ -349,8 +351,9 @@ export default function Home() {
                 Instant feedback
               </h3>
               <p className="text-slate-400">
-                Sliders update the game in real time. Kids learn to predict
-                outcomes and then test their intuition.
+                Sliders update the game in real time. Kids guess what will
+                happen, then test their guess. That loop builds intuition and
+                confidence.
               </p>
             </Card>
 
@@ -362,8 +365,9 @@ export default function Home() {
                 Systems thinking
               </h3>
               <p className="text-slate-400">
-                Kids see that changing one rule can break or fix the whole
-                system. That is the core of real programming.
+                Kids see that one rule can make a game too easy, too hard, or
+                broken. They learn to balance a system, not just follow
+                instructions.
               </p>
             </Card>
           </div>
@@ -377,8 +381,8 @@ export default function Home() {
             What Makes DreamPlay Different
           </h2>
           <p className="text-xl text-slate-400 text-center mb-16 max-w-3xl mx-auto">
-            Many tools teach kids to copy code. DreamPlay trains the way a young
-            engineer thinks.
+            Plenty of tools ask kids to copy code or drag blocks. DreamPlay
+            trains how a young engineer thinks.
           </p>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -391,7 +395,7 @@ export default function Home() {
               </h3>
               <p className="text-slate-400">
                 Kids stay in natural language while the engine handles the
-                technical side. You can later reveal the code behind the scenes.
+                technical side.
               </p>
             </Card>
 
@@ -416,8 +420,9 @@ export default function Home() {
                 Ready for real courses
               </h3>
               <p className="text-slate-400">
-                By the time kids see JavaScript or Python, they already know
-                what variables, conditions, and loops feel like.
+                By the time kids meet a real code editor, variables, conditions,
+                and loops are already familiar ideas. Classes can use DreamPlay
+                as a gentle on ramp to Scratch, JavaScript, or Python.
               </p>
             </Card>
           </div>
@@ -431,7 +436,7 @@ export default function Home() {
       >
         <div className="container mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-16">
-            Built for Kids, Trusted by Everyone
+            Built for Kids, Trusted by Adults
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -640,7 +645,7 @@ export default function Home() {
                 What age range is this for?
               </h3>
               <p className="text-slate-300">
-                Roughly ages eight to sixteen. Younger kids enjoy the magic of
+                Roughly ages six to twelve. Younger kids enjoy the magic of
                 ideas turning into games, while older kids start to reason about
                 the underlying logic and systems.
               </p>
@@ -692,23 +697,11 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => (window.location.href = "/playground")}
+              onClick={() => (window.location.href = "/chat")}
               size="lg"
-              className="bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-12 text-lg"
+              className="cursor-pointer bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600 text-white font-semibold px-12 text-lg"
             >
               Open the Playground
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-slate-600 text-slate-300 hover:bg-slate-800"
-              onClick={() => {
-                const example =
-                  "Make a game where a robot collects batteries while dodging lasers";
-                alert(`Example prompt:\n\n"${example}"`);
-              }}
-            >
-              See an Example Prompt
             </Button>
           </div>
         </div>

@@ -1,3 +1,4 @@
+<!-- 
 <!doctype html>
 <html lang="en">
   <head>
@@ -79,7 +80,819 @@
         border: none;
       }
 
-      /* Right UI Panel */
+      #controlPanel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 15px;
+        border-radius: 10px;
+        width: 260px;
+        z-index: 30;
+      }
+
+      #controlPanel h3 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #38bdf8;
+        text-align: center;
+      }
+
+      .control-group {
+        margin-bottom: 10px;
+      }
+
+      label {
+        font-size: 13px;
+        display: block;
+        margin-bottom: 2px;
+        color: #94a3b8;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background: #38bdf8;
+        border: none;
+        color: #0f172a;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #7dd3fc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="game">
+      <div id="player" class="player"></div>
+      <div id="score" class="score">Score: 0</div>
+
+      <div id="winBanner" class="winBanner">You win</div>
+      <div id="lessonBanner" class="lessonBanner"></div>
+      <button id="resumeBtn">Resume</button>
+
+      <div id="controlPanel">
+        <h3>Game Controls</h3>
+
+        <div class="control-group">
+          <label>Speed (<span id="speedVal"></span>)</label>
+          <input type="range" id="speed" min="3" max="20" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Item spawn (<span id="itemSpawnVal"></span> ms)</label>
+          <input
+            type="range"
+            id="itemSpawnRate"
+            min="300"
+            max="2000"
+            step="100"
+          />
+        </div>
+
+        <div class="control-group">
+          <label>Danger spawn (<span id="dangerSpawnVal"></span> ms)</label>
+          <input
+            type="range"
+            id="dangerSpawnRate"
+            min="400"
+            max="2000"
+            step="100"
+          />
+        </div>
+
+        <div class="control-group">
+          <label>Win target (<span id="winVal"></span> stars)</label>
+          <input type="range" id="winCondition" min="5" max="30" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Danger chance (<span id="dangerChanceVal"></span>)</label>
+          <input type="range" id="dangerChance" min="0" max="100" step="5" />
+        </div>
+
+        <button id="restartBtn">Restart</button>
+      </div>
+    </div> -->
+
+<!-- <script>
+      // --------------------------
+      // PAUSE FIX: capture messages
+      // --------------------------
+      window.gamePaused = false;
+
+      window.addEventListener("message", (event) => {
+        if (event.data === "pause") {
+          window.gamePaused = true;
+        }
+        if (event.data === "resume") {
+          window.gamePaused = false;
+        }
+      });
+
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+
+        const CONFIG = {
+          speed: Number(params.get("speed") || 8),
+          playerSize: Number(params.get("playerSize") || 60),
+          itemSize: Number(params.get("itemSize") || 45),
+          dangerSize: Number(params.get("dangerSize") || 40),
+
+          itemSpawnRate: Number(params.get("itemSpawnRate") || 1200),
+          dangerSpawnRate: Number(params.get("dangerSpawnRate") || 1500),
+          dangerSpawnChance: Number(params.get("dangerChance") || 0.35),
+
+          maxItems: Number(params.get("maxItems") || 18),
+          maxDangers: Number(params.get("maxDangers") || 10),
+
+          winCondition: Number(params.get("winCondition") || 10),
+
+          playerIcon: params.get("playerIcon") || "",
+          itemIcon: params.get("itemIcon") || "",
+          dangerIcon: params.get("dangerIcon") || "",
+
+          backgroundColor: params.get("backgroundColor") || "#1e293b",
+          playerColor: params.get("playerColor") || "#facc15",
+          itemColor: params.get("itemColor") || "#4ade80",
+          dangerColor: params.get("dangerColor") || "#f87171",
+          borderRadius: params.get("borderRadius") || "12px",
+
+          lessonTriggerScore: Number(params.get("lessonTrigger") || 5),
+          lessonText:
+            params.get("lessonText") ||
+            "Lesson: Smaller spawn rate values give you more items on the screen. Try changing the sliders and see how it feels.",
+        };
+
+        const game = document.getElementById("game");
+        const player = document.getElementById("player");
+        const scoreEl = document.getElementById("score");
+        const winBanner = document.getElementById("winBanner");
+        const lessonBanner = document.getElementById("lessonBanner");
+        const resumeBtn = document.getElementById("resumeBtn");
+
+        const restartBtn = document.getElementById("restartBtn");
+
+        const speedSlider = document.getElementById("speed");
+        const itemSpawnSlider = document.getElementById("itemSpawnRate");
+        const dangerSpawnSlider = document.getElementById("dangerSpawnRate");
+        const winSlider = document.getElementById("winCondition");
+        const dangerChanceSlider = document.getElementById("dangerChance");
+
+        const speedVal = document.getElementById("speedVal");
+        const itemSpawnVal = document.getElementById("itemSpawnVal");
+        const dangerSpawnVal = document.getElementById("dangerSpawnVal");
+        const winVal = document.getElementById("winVal");
+        const dangerChanceVal = document.getElementById("dangerChanceVal");
+
+        const PANEL_WIDTH = 260;
+        const PANEL_MARGIN = 40;
+        const TOP_MARGIN = 80;
+        const BOTTOM_MARGIN = 80;
+
+        let score = 0;
+        let gameRunning = true;
+        let itemIntervalId = null;
+        let dangerIntervalId = null;
+
+        let playerX = 150;
+        let playerY = 200;
+
+        game.style.background = CONFIG.backgroundColor;
+
+        player.style.width = CONFIG.playerSize + "px";
+        player.style.height = CONFIG.playerSize + "px";
+        player.style.background = CONFIG.playerColor;
+        player.style.borderRadius = CONFIG.borderRadius;
+
+        if (CONFIG.playerIcon) {
+          const img = document.createElement("img");
+          img.className = "objIcon";
+          img.src = CONFIG.playerIcon;
+          player.appendChild(img);
+        }
+
+        function getBounds() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          const minX = 20;
+          const maxX = width - (PANEL_WIDTH + PANEL_MARGIN);
+          const minY = TOP_MARGIN;
+          const maxY = height - BOTTOM_MARGIN;
+          return { minX, maxX, minY, maxY };
+        }
+
+        function applyPlayerPosition() {
+          const { minX, maxX, minY, maxY } = getBounds();
+          const size = CONFIG.playerSize;
+
+          playerX = Math.min(Math.max(playerX, minX), maxX - size);
+          playerY = Math.min(Math.max(playerY, minY), maxY - size);
+
+          player.style.left = playerX + "px";
+          player.style.top = playerY + "px";
+        }
+
+        // --------------------------
+        // PAUSE FIX: block movement
+        // --------------------------
+        document.addEventListener("keydown", (e) => {
+          if (window.gamePaused) return;
+          if (!gameRunning) return;
+
+          if (e.code === "ArrowRight" || e.code === "KeyD") {
+            playerX += CONFIG.speed;
+          }
+          if (e.code === "ArrowLeft" || e.code === "KeyA") {
+            playerX -= CONFIG.speed;
+          }
+          if (e.code === "ArrowUp" || e.code === "KeyW") {
+            playerY -= CONFIG.speed;
+          }
+          if (e.code === "ArrowDown" || e.code === "KeyS") {
+            playerY += CONFIG.speed;
+          }
+
+          applyPlayerPosition();
+        });
+
+        function spawnItem() {
+          if (window.gamePaused) return; // PAUSE FIX
+          if (!gameRunning) return;
+
+          if (document.querySelectorAll(".item").length >= CONFIG.maxItems) {
+            return;
+          }
+
+          const item = document.createElement("div");
+          item.className = "item";
+          item.style.width = CONFIG.itemSize + "px";
+          item.style.height = CONFIG.itemSize + "px";
+          item.style.background = CONFIG.itemColor;
+          item.style.borderRadius = CONFIG.borderRadius;
+
+          if (CONFIG.itemIcon) {
+            const img = document.createElement("img");
+            img.className = "objIcon";
+            img.src = CONFIG.itemIcon;
+            item.appendChild(img);
+          }
+
+          const bounds = getBounds();
+          const x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+          const y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+
+          item.style.left = x + "px";
+          item.style.top = y + "px";
+          game.appendChild(item);
+        }
+
+        function spawnDanger() {
+          if (window.gamePaused) return; // PAUSE FIX
+          if (!gameRunning) return;
+
+          if (Math.random() > CONFIG.dangerSpawnChance) return;
+          if (
+            document.querySelectorAll(".danger").length >= CONFIG.maxDangers
+          ) {
+            return;
+          }
+
+          const danger = document.createElement("div");
+          danger.className = "danger";
+          danger.style.width = CONFIG.dangerSize + "px";
+          danger.style.height = CONFIG.dangerSize + "px";
+          danger.style.background = CONFIG.dangerColor;
+          danger.style.borderRadius = CONFIG.borderRadius;
+
+          if (CONFIG.dangerIcon) {
+            const img = document.createElement("img");
+            img.className = "objIcon";
+            img.src = CONFIG.dangerIcon;
+            danger.appendChild(img);
+          }
+
+          const bounds = getBounds();
+          const x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+          const y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+
+          danger.style.left = x + "px";
+          danger.style.top = y + "px";
+          game.appendChild(danger);
+        }
+
+        const collisionLoopId = setInterval(() => {
+          if (window.gamePaused) return; // PAUSE FIX
+          if (!gameRunning) return;
+
+          const pRect = player.getBoundingClientRect();
+
+          document.querySelectorAll(".item").forEach((item) => {
+            const r = item.getBoundingClientRect();
+            if (
+              pRect.left < r.right &&
+              pRect.right > r.left &&
+              pRect.top < r.bottom &&
+              pRect.bottom > r.top
+            ) {
+              item.remove();
+              score += 1;
+              scoreEl.textContent = "Score: " + score;
+
+              if (score >= CONFIG.winCondition) {
+                winGame();
+              }
+            }
+          });
+
+          document.querySelectorAll(".danger").forEach((d) => {
+            const r = d.getBoundingClientRect();
+            if (
+              pRect.left < r.right &&
+              pRect.right > r.left &&
+              pRect.top < r.bottom &&
+              pRect.bottom > r.top
+            ) {
+              gameOver();
+            }
+          });
+        }, 50);
+
+        function showLesson() {
+          if (!gameRunning) return;
+          gameRunning = false;
+          lessonBanner.textContent = CONFIG.lessonText;
+          lessonBanner.style.display = "block";
+          resumeBtn.style.display = "block";
+        }
+
+        resumeBtn.onclick = function () {
+          lessonBanner.style.display = "none";
+          resumeBtn.style.display = "none";
+          gameRunning = true;
+        };
+
+        function winGame() {
+          if (!gameRunning) return;
+          gameRunning = false;
+          winBanner.style.display = "block";
+        }
+
+        function gameOver() {
+          if (!gameRunning) return;
+          gameRunning = false;
+          scoreEl.textContent = "Game over. Score: " + score;
+        }
+
+        function startSpawners() {
+          if (itemIntervalId) clearInterval(itemIntervalId);
+          if (dangerIntervalId) clearInterval(dangerIntervalId);
+
+          itemIntervalId = setInterval(() => {
+            if (window.gamePaused) return; // PAUSE FIX
+            if (!gameRunning) return;
+            spawnItem();
+          }, CONFIG.itemSpawnRate);
+
+          dangerIntervalId = setInterval(() => {
+            if (window.gamePaused) return; // PAUSE FIX
+            if (!gameRunning) return;
+            spawnDanger();
+          }, CONFIG.dangerSpawnRate);
+        }
+
+        speedSlider.value = CONFIG.speed;
+        speedVal.textContent = CONFIG.speed;
+
+        itemSpawnSlider.value = CONFIG.itemSpawnRate;
+        itemSpawnVal.textContent = CONFIG.itemSpawnRate;
+
+        dangerSpawnSlider.value = CONFIG.dangerSpawnRate;
+        dangerSpawnVal.textContent = CONFIG.dangerSpawnRate;
+
+        winSlider.value = CONFIG.winCondition;
+        winVal.textContent = CONFIG.winCondition;
+
+        dangerChanceSlider.value = Math.round(CONFIG.dangerSpawnChance * 100);
+        dangerChanceVal.textContent = dangerChanceSlider.value.toString() + "%";
+
+        speedSlider.oninput = function () {
+          CONFIG.speed = Number(speedSlider.value);
+          speedVal.textContent = CONFIG.speed;
+        };
+
+        itemSpawnSlider.oninput = function () {
+          CONFIG.itemSpawnRate = Number(itemSpawnSlider.value);
+          itemSpawnVal.textContent = CONFIG.itemSpawnRate;
+          startSpawners();
+        };
+
+        dangerSpawnSlider.oninput = function () {
+          CONFIG.dangerSpawnRate = Number(dangerSpawnSlider.value);
+          dangerSpawnVal.textContent = CONFIG.dangerSpawnRate;
+          startSpawners();
+        };
+
+        winSlider.oninput = function () {
+          CONFIG.winCondition = Number(winSlider.value);
+          winVal.textContent = CONFIG.winCondition;
+        };
+
+        dangerChanceSlider.oninput = function () {
+          const pct = Number(dangerChanceSlider.value);
+          CONFIG.dangerSpawnChance = pct / 100;
+          dangerChanceVal.textContent = pct.toString() + "%";
+        };
+
+        restartBtn.onclick = function () {
+          window.gamePaused = false; // PAUSE FIX
+          window.location.reload();
+        };
+
+        applyPlayerPosition();
+        startSpawners();
+        spawnItem();
+
+        window.addEventListener("beforeunload", function () {
+          clearInterval(collisionLoopId);
+          if (itemIntervalId) clearInterval(itemIntervalId);
+          if (dangerIntervalId) clearInterval(dangerIntervalId);
+        });
+      })();
+    </script> -->
+<!--   
+  <script>
+  // --------------------------
+  // PAUSE + START FIX
+  // --------------------------
+  window.gamePaused = false;
+  window.gameStarted = false; // <---- NEW
+
+  window.addEventListener("message", (event) => {
+    if (event.data === "pause") window.gamePaused = true;
+    if (event.data === "resume") window.gamePaused = false;
+    if (event.data === "startGame") window.gameStarted = true; // <---- NEW
+  });
+
+  (function () {
+    const params = new URLSearchParams(window.location.search);
+
+    const CONFIG = {
+      speed: Number(params.get("speed") || 8),
+      playerSize: Number(params.get("playerSize") || 60),
+      itemSize: Number(params.get("itemSize") || 45),
+      dangerSize: Number(params.get("dangerSize") || 40),
+
+      itemSpawnRate: Number(params.get("itemSpawnRate") || 1200),
+      dangerSpawnRate: Number(params.get("dangerSpawnRate") || 1500),
+      dangerSpawnChance: Number(params.get("dangerChance") || 0.35),
+
+      maxItems: Number(params.get("maxItems") || 18),
+      maxDangers: Number(params.get("maxDangers") || 10),
+
+      winCondition: Number(params.get("winCondition") || 10),
+
+      playerIcon: params.get("playerIcon") || "",
+      itemIcon: params.get("itemIcon") || "",
+      dangerIcon: params.get("dangerIcon") || "",
+
+      backgroundColor: params.get("backgroundColor") || "#1e293b",
+      playerColor: params.get("playerColor") || "#facc15",
+      itemColor: params.get("itemColor") || "#4ade80",
+      dangerColor: params.get("dangerColor") || "#f87171",
+      borderRadius: params.get("borderRadius") || "12px",
+
+      lessonTriggerScore: Number(params.get("lessonTrigger") || 5),
+      lessonText:
+        params.get("lessonText") ||
+        "Lesson: Smaller spawn rate values give you more items on the screen. Try changing the sliders and see how it feels.",
+    };
+
+    const game = document.getElementById("game");
+    const player = document.getElementById("player");
+    const scoreEl = document.getElementById("score");
+    const winBanner = document.getElementById("winBanner");
+    const lessonBanner = document.getElementById("lessonBanner");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const speedSlider = document.getElementById("speed");
+    const itemSpawnSlider = document.getElementById("itemSpawnRate");
+    const dangerSpawnSlider = document.getElementById("dangerSpawnRate");
+    const winSlider = document.getElementById("winCondition");
+    const dangerChanceSlider = document.getElementById("dangerChance");
+
+    const speedVal = document.getElementById("speedVal");
+    const itemSpawnVal = document.getElementById("itemSpawnVal");
+    const dangerSpawnVal = document.getElementById("dangerSpawnVal");
+    const winVal = document.getElementById("winVal");
+    const dangerChanceVal = document.getElementById("dangerChanceVal");
+
+    const PANEL_WIDTH = 260;
+    const PANEL_MARGIN = 40;
+    const TOP_MARGIN = 80;
+    const BOTTOM_MARGIN = 80;
+
+    let score = 0;
+    let gameRunning = true;
+    let itemIntervalId = null;
+    let dangerIntervalId = null;
+
+    let playerX = 150;
+    let playerY = 200;
+
+    game.style.background = CONFIG.backgroundColor;
+
+    player.style.width = CONFIG.playerSize + "px";
+    player.style.height = CONFIG.playerSize + "px";
+    player.style.background = CONFIG.playerColor;
+    player.style.borderRadius = CONFIG.borderRadius;
+
+    if (CONFIG.playerIcon) {
+      const img = document.createElement("img");
+      img.className = "objIcon";
+      img.src = CONFIG.playerIcon;
+      player.appendChild(img);
+    }
+
+    function getBounds() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const minX = 20;
+      const maxX = width - (PANEL_WIDTH + PANEL_MARGIN);
+      const minY = TOP_MARGIN;
+      const maxY = height - BOTTOM_MARGIN;
+      return { minX, maxX, minY, maxY };
+    }
+
+    function applyPlayerPosition() {
+      const { minX, maxX, minY, maxY } = getBounds();
+      const size = CONFIG.playerSize;
+
+      playerX = Math.min(Math.max(playerX, minX), maxX - size);
+      playerY = Math.min(Math.max(playerY, minY), maxY - size);
+
+      player.style.left = playerX + "px";
+      player.style.top = playerY + "px";
+    }
+
+    // --------------------------
+    // BLOCK MOVEMENT UNTIL START
+    // --------------------------
+    document.addEventListener("keydown", (e) => {
+      if (!window.gameStarted) return;
+      if (window.gamePaused) return;
+      if (!gameRunning) return;
+
+      if (e.code === "ArrowRight" || e.code === "KeyD") playerX += CONFIG.speed;
+      if (e.code === "ArrowLeft" || e.code === "KeyA") playerX -= CONFIG.speed;
+      if (e.code === "ArrowUp" || e.code === "KeyW") playerY -= CONFIG.speed;
+      if (e.code === "ArrowDown" || e.code === "KeyS") playerY += CONFIG.speed;
+
+      applyPlayerPosition();
+    });
+
+    function spawnItem() {
+      if (!window.gameStarted) return; // <---- NEW
+      if (window.gamePaused) return;
+      if (!gameRunning) return;
+
+      if (document.querySelectorAll(".item").length >= CONFIG.maxItems) return;
+
+      const item = document.createElement("div");
+      item.className = "item";
+      item.style.width = CONFIG.itemSize + "px";
+      item.style.height = CONFIG.itemSize + "px";
+      item.style.background = CONFIG.itemColor;
+      item.style.borderRadius = CONFIG.borderRadius;
+
+      if (CONFIG.itemIcon) {
+        const img = document.createElement("img");
+        img.className = "objIcon";
+        img.src = CONFIG.itemIcon;
+        item.appendChild(img);
+      }
+
+      const bounds = getBounds();
+      const x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+      const y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+
+      item.style.left = x + "px";
+      item.style.top = y + "px";
+      game.appendChild(item);
+    }
+
+    function spawnDanger() {
+      if (!window.gameStarted) return; // <---- NEW
+      if (window.gamePaused) return;
+      if (!gameRunning) return;
+
+      if (Math.random() > CONFIG.dangerSpawnChance) return;
+      if (document.querySelectorAll(".danger").length >= CONFIG.maxDangers)
+        return;
+
+      const danger = document.createElement("div");
+      danger.className = "danger";
+      danger.style.width = CONFIG.dangerSize + "px";
+      danger.style.height = CONFIG.dangerSize + "px";
+      danger.style.background = CONFIG.dangerColor;
+      danger.style.borderRadius = CONFIG.borderRadius;
+
+      if (CONFIG.dangerIcon) {
+        const img = document.createElement("img");
+        img.className = "objIcon";
+        img.src = CONFIG.dangerIcon;
+        danger.appendChild(img);
+      }
+
+      const bounds = getBounds();
+      const x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+      const y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+
+      danger.style.left = x + "px";
+      danger.style.top = y + "px";
+      game.appendChild(danger);
+    }
+
+    // --------------------------
+    // COLLISION LOOP (BLOCKED UNTIL START)
+    // --------------------------
+    const collisionLoopId = setInterval(() => {
+      if (!window.gameStarted) return; // <---- NEW
+      if (window.gamePaused) return;
+      if (!gameRunning) return;
+
+      const pRect = player.getBoundingClientRect();
+
+      document.querySelectorAll(".item").forEach((item) => {
+        const r = item.getBoundingClientRect();
+        if (
+          pRect.left < r.right &&
+          pRect.right > r.left &&
+          pRect.top < r.bottom &&
+          pRect.bottom > r.top
+        ) {
+          item.remove();
+          score += 1;
+          scoreEl.textContent = "Score: " + score;
+
+          if (score >= CONFIG.winCondition) winGame();
+        }
+      });
+
+      document.querySelectorAll(".danger").forEach((d) => {
+        const r = d.getBoundingClientRect();
+        if (
+          pRect.left < r.right &&
+          pRect.right > r.left &&
+          pRect.top < r.bottom &&
+          pRect.bottom > r.top
+        ) {
+          gameOver();
+        }
+      });
+    }, 50);
+
+    function winGame() {
+      if (!gameRunning) return;
+      gameRunning = false;
+      winBanner.style.display = "block";
+    }
+
+    function gameOver() {
+      if (!gameRunning) return;
+      gameRunning = false;
+      scoreEl.textContent = "Game over. Score: " + score;
+    }
+
+    function startSpawners() {
+      if (itemIntervalId) clearInterval(itemIntervalId);
+      if (dangerIntervalId) clearInterval(dangerIntervalId);
+
+      itemIntervalId = setInterval(() => {
+        if (!window.gameStarted) return; // <---- NEW
+        if (window.gamePaused) return;
+        if (!gameRunning) return;
+        spawnItem();
+      }, CONFIG.itemSpawnRate);
+
+      dangerIntervalId = setInterval(() => {
+        if (!window.gameStarted) return; // <---- NEW
+        if (window.gamePaused) return;
+        if (!gameRunning) return;
+        spawnDanger();
+      }, CONFIG.dangerSpawnRate);
+    }
+
+    restartBtn.onclick = () => {
+      window.gamePaused = false;
+      window.gameStarted = false;
+      location.reload();
+    };
+
+    applyPlayerPosition();
+    startSpawners();
+  })();
+</script>
+
+  
+  
+  
+  
+  </body>
+</html> -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Collect the Stars</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        overflow: hidden;
+        font-family: sans-serif;
+        color: white;
+      }
+
+      #game {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: #1e293b;
+        overflow: hidden;
+      }
+
+      .player,
+      .item,
+      .danger {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .objIcon {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        z-index: 20;
+      }
+
+      .winBanner,
+      .lessonBanner {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 32px;
+        font-weight: bold;
+        color: #38bdf8;
+        display: none;
+        z-index: 50;
+        padding: 20px 30px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.5);
+        max-width: 520px;
+        text-align: center;
+      }
+
+      #resumeBtn {
+        display: none;
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        background: #38bdf8;
+        color: #0f172a;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 60;
+        border: none;
+      }
+
       #controlPanel {
         position: absolute;
         top: 20px;
@@ -190,13 +1003,11 @@
         const params = new URLSearchParams(window.location.search);
 
         const CONFIG = {
-          // movement and sizes
           speed: Number(params.get("speed") || 8),
           playerSize: Number(params.get("playerSize") || 60),
           itemSize: Number(params.get("itemSize") || 45),
           dangerSize: Number(params.get("dangerSize") || 40),
 
-          // spawning
           itemSpawnRate: Number(params.get("itemSpawnRate") || 1200),
           dangerSpawnRate: Number(params.get("dangerSpawnRate") || 1500),
           dangerSpawnChance: Number(params.get("dangerChance") || 0.35),
@@ -204,22 +1015,18 @@
           maxItems: Number(params.get("maxItems") || 18),
           maxDangers: Number(params.get("maxDangers") || 10),
 
-          // win condition
           winCondition: Number(params.get("winCondition") || 10),
 
-          // icons
           playerIcon: params.get("playerIcon") || "",
           itemIcon: params.get("itemIcon") || "",
           dangerIcon: params.get("dangerIcon") || "",
 
-          // colors
           backgroundColor: params.get("backgroundColor") || "#1e293b",
           playerColor: params.get("playerColor") || "#facc15",
           itemColor: params.get("itemColor") || "#4ade80",
           dangerColor: params.get("dangerColor") || "#f87171",
           borderRadius: params.get("borderRadius") || "12px",
 
-          // lesson
           lessonTriggerScore: Number(params.get("lessonTrigger") || 5),
           lessonText:
             params.get("lessonText") ||
@@ -234,6 +1041,7 @@
         const resumeBtn = document.getElementById("resumeBtn");
 
         const restartBtn = document.getElementById("restartBtn");
+
         const speedSlider = document.getElementById("speed");
         const itemSpawnSlider = document.getElementById("itemSpawnRate");
         const dangerSpawnSlider = document.getElementById("dangerSpawnRate");
@@ -253,14 +1061,13 @@
 
         let score = 0;
         let gameRunning = true;
+        let hasStarted = false;
         let itemIntervalId = null;
         let dangerIntervalId = null;
 
-        // keep player position as numbers
         let playerX = 150;
         let playerY = 200;
 
-        // theme and player setup
         game.style.background = CONFIG.backgroundColor;
 
         player.style.width = CONFIG.playerSize + "px";
@@ -296,11 +1103,44 @@
           player.style.top = playerY + "px";
         }
 
-        function spawnItem() {
+        document.addEventListener("keydown", (e) => {
+          if (!gameRunning) return;
+
+          // first movement marks the game as started
           if (
-            !gameRunning ||
-            document.querySelectorAll(".item").length >= CONFIG.maxItems
+            e.code === "ArrowRight" ||
+            e.code === "KeyD" ||
+            e.code === "ArrowLeft" ||
+            e.code === "KeyA" ||
+            e.code === "ArrowUp" ||
+            e.code === "KeyW" ||
+            e.code === "ArrowDown" ||
+            e.code === "KeyS"
           ) {
+            hasStarted = true;
+          }
+
+          if (e.code === "ArrowRight" || e.code === "KeyD") {
+            playerX += CONFIG.speed;
+          }
+          if (e.code === "ArrowLeft" || e.code === "KeyA") {
+            playerX -= CONFIG.speed;
+          }
+          if (e.code === "ArrowUp" || e.code === "KeyW") {
+            playerY -= CONFIG.speed;
+          }
+          if (e.code === "ArrowDown" || e.code === "KeyS") {
+            playerY += CONFIG.speed;
+          }
+
+          applyPlayerPosition();
+        });
+
+        function spawnItem() {
+          if (!gameRunning) return;
+          if (!hasStarted) return;
+
+          if (document.querySelectorAll(".item").length >= CONFIG.maxItems) {
             return;
           }
 
@@ -329,6 +1169,7 @@
 
         function spawnDanger() {
           if (!gameRunning) return;
+          if (!hasStarted) return;
 
           if (Math.random() > CONFIG.dangerSpawnChance) return;
           if (
@@ -360,29 +1201,9 @@
           game.appendChild(danger);
         }
 
-        // movement in 4 directions
-        document.addEventListener("keydown", (e) => {
-          if (!gameRunning) return;
-
-          if (e.code === "ArrowRight" || e.code === "KeyD") {
-            playerX += CONFIG.speed;
-          }
-          if (e.code === "ArrowLeft" || e.code === "KeyA") {
-            playerX -= CONFIG.speed;
-          }
-          if (e.code === "ArrowUp" || e.code === "KeyW") {
-            playerY -= CONFIG.speed;
-          }
-          if (e.code === "ArrowDown" || e.code === "KeyS") {
-            playerY += CONFIG.speed;
-          }
-
-          applyPlayerPosition();
-        });
-
-        // collision and lesson loop
         const collisionLoopId = setInterval(() => {
           if (!gameRunning) return;
+          if (!hasStarted) return;
 
           const pRect = player.getBoundingClientRect();
 
@@ -397,10 +1218,6 @@
               item.remove();
               score += 1;
               scoreEl.textContent = "Score: " + score;
-
-              //   if (score === CONFIG.lessonTriggerScore) {
-              //     showLesson();
-              //   }
 
               if (score >= CONFIG.winCondition) {
                 winGame();
@@ -435,11 +1252,11 @@
           gameRunning = true;
         };
 
-        // function winGame() {
-        //   if (!gameRunning) return;
-        //   gameRunning = false;
-        //   winBanner.style.display = "block";
-        // }
+        function winGame() {
+          if (!gameRunning) return;
+          gameRunning = false;
+          winBanner.style.display = "block";
+        }
 
         function gameOver() {
           if (!gameRunning) return;
@@ -451,11 +1268,17 @@
           if (itemIntervalId) clearInterval(itemIntervalId);
           if (dangerIntervalId) clearInterval(dangerIntervalId);
 
-          itemIntervalId = setInterval(spawnItem, CONFIG.itemSpawnRate);
-          dangerIntervalId = setInterval(spawnDanger, CONFIG.dangerSpawnRate);
+          itemIntervalId = setInterval(() => {
+            if (!gameRunning) return;
+            spawnItem();
+          }, CONFIG.itemSpawnRate);
+
+          dangerIntervalId = setInterval(() => {
+            if (!gameRunning) return;
+            spawnDanger();
+          }, CONFIG.dangerSpawnRate);
         }
 
-        // slider initial values
         speedSlider.value = CONFIG.speed;
         speedVal.textContent = CONFIG.speed;
 
@@ -471,7 +1294,6 @@
         dangerChanceSlider.value = Math.round(CONFIG.dangerSpawnChance * 100);
         dangerChanceVal.textContent = dangerChanceSlider.value.toString() + "%";
 
-        // slider handlers
         speedSlider.oninput = function () {
           CONFIG.speed = Number(speedSlider.value);
           speedVal.textContent = CONFIG.speed;
@@ -504,10 +1326,9 @@
           window.location.reload();
         };
 
-        // start game
         applyPlayerPosition();
         startSpawners();
-        spawnItem(); // at least one star to start
+        // spawnItem(); // first item will appear after player starts moving
 
         window.addEventListener("beforeunload", function () {
           clearInterval(collisionLoopId);
@@ -518,38 +1339,3 @@
     </script>
   </body>
 </html>
-
-<!-- 
-
-{
-  "game": "collect",
-  "config": {
-    "speed": null,
-    "playerSize": null,
-    "itemSize": null,
-    "dangerSize": null,
-
-    "itemSpawnRate": null,
-    "dangerSpawnRate": null,
-    "dangerChance": null,
-    "maxItems": null,
-    "maxDangers": null,
-
-    "winCondition": null,
-
-    "playerIcon": null,
-    "itemIcon": null,
-    "dangerIcon": null,
-
-    "backgroundColor": null,
-    "playerColor": null,
-    "itemColor": null,
-    "dangerColor": null,
-    "borderRadius": null,
-
-    "lessonTrigger": null,
-    "lessonText": null
-  }
-}
-
-} -->

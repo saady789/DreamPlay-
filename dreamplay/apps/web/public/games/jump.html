@@ -1,3 +1,557 @@
+<!-- <!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jump and Dodge</title>
+    <style>
+      body {
+        margin: 0;
+        background: #0f172a;
+        overflow: hidden;
+        font-family: sans-serif;
+        color: white;
+      }
+
+      #game {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        background: #1e293b;
+        overflow: hidden;
+      }
+
+      .player {
+        position: absolute;
+        bottom: 50px;
+        left: 80px;
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #38bdf8;
+        transition: background 0.3s;
+      }
+
+      .player img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .obstacle {
+        position: absolute;
+        bottom: 50px;
+        width: 45px;
+        height: 45px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f87171;
+      }
+
+      .obstacle img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+
+      .score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
+        color: white;
+      }
+
+      #controlPanel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        padding: 15px;
+        border-radius: 10px;
+        width: 260px;
+      }
+
+      #controlPanel h3 {
+        margin-top: 0;
+        font-size: 18px;
+        color: #38bdf8;
+        text-align: center;
+      }
+
+      .control-group {
+        margin-bottom: 10px;
+      }
+
+      label {
+        font-size: 13px;
+        display: block;
+        margin-bottom: 2px;
+        color: #94a3b8;
+      }
+
+      input[type="range"] {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        background: #38bdf8;
+        border: none;
+        color: #0f172a;
+        font-weight: bold;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #7dd3fc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="game">
+      <div class="player" id="player">
+        <img id="playerIcon" src="" alt="player" />
+      </div>
+
+      <div class="score" id="score">Score: 0</div>
+
+      <div id="controlPanel">
+        <h3>Game Controls</h3>
+
+        <div class="control-group">
+          <label>Speed (<span id="speedVal"></span>)</label>
+          <input type="range" id="speed" min="3" max="15" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Gravity (<span id="gravityVal"></span>)</label>
+          <input type="range" id="gravity" min="0.5" max="3" step="0.1" />
+        </div>
+
+        <div class="control-group">
+          <label>Jump Force (<span id="jumpVal"></span>)</label>
+          <input type="range" id="jump" min="10" max="35" step="1" />
+        </div>
+
+        <div class="control-group">
+          <label>Spawn Rate (<span id="spawnVal"></span> ms)</label>
+          <input type="range" id="spawnRate" min="400" max="2000" step="100" />
+        </div>
+
+        <button id="restartBtn">Restart</button>
+      </div>
+    </div> -->
+
+<!-- <script>
+      // global pause flag
+      window.gamePaused = false;
+
+      window.addEventListener("message", (event) => {
+        if (event.data === "pause") window.gamePaused = true;
+        if (event.data === "resume") window.gamePaused = false;
+      });
+
+      const params = new URLSearchParams(location.search);
+
+      const CONFIG = {
+        speed: Number(params.get("speed") || 7),
+        gravity: Number(params.get("gravity") || 1.2),
+        jumpForce: Number(params.get("jump") || 20),
+        spawnRate: Number(params.get("spawnRate") || 1200),
+
+        playerIcon: params.get("playerIcon") || "",
+        obstacleIcon: params.get("obstacleIcon") || "",
+
+        playerColor: params.get("playerColor") || "#38bdf8",
+        obstacleColor: params.get("obstacleColor") || "#f87171",
+        backgroundColor: params.get("backgroundColor") || "#1e293b",
+      };
+
+      document.getElementById("game").style.background = CONFIG.backgroundColor;
+      document.getElementById("player").style.background = CONFIG.playerColor;
+
+      const playerImg = document.getElementById("playerIcon");
+      if (CONFIG.playerIcon) playerImg.src = CONFIG.playerIcon;
+
+      const game = document.getElementById("game");
+      const player = document.getElementById("player");
+      const scoreEl = document.getElementById("score");
+
+      let yVelocity = 0;
+      let onGround = true;
+      let score = 0;
+      let gameRunning = true;
+
+      function jump() {
+        if (window.gamePaused) return;
+        if (onGround) {
+          yVelocity = -CONFIG.jumpForce;
+          onGround = false;
+        }
+      }
+
+      document.body.addEventListener("keydown", (e) => {
+        if (e.code === "Space" || e.code === "ArrowUp") jump();
+      });
+
+      function createObstacle() {
+        const obs = document.createElement("div");
+        obs.classList.add("obstacle");
+        obs.style.background = CONFIG.obstacleColor;
+
+        const size = Math.random() * 20 + 35;
+        obs.style.width = size + "px";
+        obs.style.height = size + "px";
+
+        if (CONFIG.obstacleIcon) {
+          const img = document.createElement("img");
+          img.src = CONFIG.obstacleIcon;
+          obs.appendChild(img);
+        }
+
+        obs.style.right = "-60px";
+        game.appendChild(obs);
+
+        let x = window.innerWidth;
+
+        const move = setInterval(() => {
+          if (window.gamePaused) return;
+
+          if (!gameRunning) {
+            clearInterval(move);
+            obs.remove();
+            return;
+          }
+
+          x -= CONFIG.speed;
+          obs.style.left = x + "px";
+
+          const pRect = player.getBoundingClientRect();
+          const oRect = obs.getBoundingClientRect();
+
+          if (
+            pRect.left < oRect.right &&
+            pRect.right > oRect.left &&
+            pRect.top < oRect.bottom &&
+            pRect.bottom > oRect.top
+          ) {
+            gameOver();
+            clearInterval(move);
+          }
+
+          if (x < -100) {
+            obs.remove();
+            clearInterval(move);
+          }
+        }, 16);
+      }
+
+      function gameOver() {
+        gameRunning = false;
+        scoreEl.textContent = "Game Over! Score: " + score;
+      }
+
+      // main physics loop
+      setInterval(() => {
+        if (window.gamePaused) return;
+        if (!gameRunning) return;
+
+        yVelocity += CONFIG.gravity;
+
+        const currentBottom = parseFloat(getComputedStyle(player).bottom);
+        let newBottom = currentBottom - yVelocity;
+
+        if (newBottom <= 50) {
+          newBottom = 50;
+          yVelocity = 0;
+          onGround = true;
+        }
+
+        player.style.bottom = newBottom + "px";
+
+        score += 1;
+        scoreEl.textContent = "Score: " + score;
+      }, 16);
+
+      // obstacle spawner
+      let spawner = setInterval(() => {
+        if (window.gamePaused) return;
+        if (gameRunning) createObstacle();
+      }, CONFIG.spawnRate);
+
+      // controls
+      const speedInput = document.getElementById("speed");
+      const gravityInput = document.getElementById("gravity");
+      const jumpInput = document.getElementById("jump");
+      const spawnInput = document.getElementById("spawnRate");
+
+      const speedVal = document.getElementById("speedVal");
+      const gravityVal = document.getElementById("gravityVal");
+      const jumpVal = document.getElementById("jumpVal");
+      const spawnVal = document.getElementById("spawnVal");
+
+      function updateLabels() {
+        speedVal.textContent = CONFIG.speed;
+        gravityVal.textContent = CONFIG.gravity.toFixed(1);
+        jumpVal.textContent = CONFIG.jumpForce;
+        spawnVal.textContent = CONFIG.spawnRate;
+      }
+
+      speedInput.oninput = () => {
+        CONFIG.speed = Number(speedInput.value);
+        updateLabels();
+      };
+
+      gravityInput.oninput = () => {
+        CONFIG.gravity = Number(gravityInput.value);
+        updateLabels();
+      };
+
+      jumpInput.oninput = () => {
+        CONFIG.jumpForce = Number(jumpInput.value);
+        updateLabels();
+      };
+
+      spawnInput.oninput = () => {
+        CONFIG.spawnRate = Number(spawnInput.value);
+        clearInterval(spawner);
+        spawner = setInterval(() => {
+          if (window.gamePaused) return;
+          if (gameRunning) createObstacle();
+        }, CONFIG.spawnRate);
+        updateLabels();
+      };
+
+      document.getElementById("restartBtn").onclick = () => {
+        window.gamePaused = false;
+        location.reload();
+      };
+
+      speedInput.value = CONFIG.speed;
+      gravityInput.value = CONFIG.gravity;
+      jumpInput.value = CONFIG.jumpForce;
+      spawnInput.value = CONFIG.spawnRate;
+      updateLabels();
+    </script> -->
+
+<!-- <script>
+      // start + pause globals
+      window.gamePaused = false;
+      window.gameStarted = false; // NEW
+
+      window.addEventListener("message", (event) => {
+        if (event.data === "pause") window.gamePaused = true;
+        if (event.data === "resume") window.gamePaused = false;
+        if (event.data === "startGame") window.gameStarted = true; // NEW
+      });
+
+      const params = new URLSearchParams(location.search);
+
+      const CONFIG = {
+        speed: Number(params.get("speed") || 7),
+        gravity: Number(params.get("gravity") || 1.2),
+        jumpForce: Number(params.get("jump") || 20),
+        spawnRate: Number(params.get("spawnRate") || 1200),
+
+        playerIcon: params.get("playerIcon") || "",
+        obstacleIcon: params.get("obstacleIcon") || "",
+
+        playerColor: params.get("playerColor") || "#38bdf8",
+        obstacleColor: params.get("obstacleColor") || "#f87171",
+        backgroundColor: params.get("backgroundColor") || "#1e293b",
+      };
+
+      document.getElementById("game").style.background = CONFIG.backgroundColor;
+      document.getElementById("player").style.background = CONFIG.playerColor;
+
+      const playerImg = document.getElementById("playerIcon");
+      if (CONFIG.playerIcon) playerImg.src = CONFIG.playerIcon;
+
+      const game = document.getElementById("game");
+      const player = document.getElementById("player");
+      const scoreEl = document.getElementById("score");
+
+      let yVelocity = 0;
+      let onGround = true;
+      let score = 0;
+      let gameRunning = true;
+
+      function jump() {
+        if (!window.gameStarted) return; // NEW
+        if (window.gamePaused) return;
+
+        if (onGround) {
+          yVelocity = -CONFIG.jumpForce;
+          onGround = false;
+        }
+      }
+
+      document.body.addEventListener("keydown", (e) => {
+        if (!window.gameStarted) return; // NEW
+        if (e.code === "Space" || e.code === "ArrowUp") jump();
+      });
+
+      function createObstacle() {
+        if (!window.gameStarted) return; // NEW
+
+        const obs = document.createElement("div");
+        obs.classList.add("obstacle");
+        obs.style.background = CONFIG.obstacleColor;
+
+        const size = Math.random() * 20 + 35;
+        obs.style.width = size + "px";
+        obs.style.height = size + "px";
+
+        if (CONFIG.obstacleIcon) {
+          const img = document.createElement("img");
+          img.src = CONFIG.obstacleIcon;
+          obs.appendChild(img);
+        }
+
+        obs.style.right = "-60px";
+        game.appendChild(obs);
+
+        let x = window.innerWidth;
+
+        const move = setInterval(() => {
+          if (!window.gameStarted) return; // NEW
+          if (window.gamePaused) return;
+
+          if (!gameRunning) {
+            clearInterval(move);
+            obs.remove();
+            return;
+          }
+
+          x -= CONFIG.speed;
+          obs.style.left = x + "px";
+
+          const pRect = player.getBoundingClientRect();
+          const oRect = obs.getBoundingClientRect();
+
+          if (
+            pRect.left < oRect.right &&
+            pRect.right > oRect.left &&
+            pRect.top < oRect.bottom &&
+            pRect.bottom > oRect.top
+          ) {
+            gameOver();
+            clearInterval(move);
+          }
+
+          if (x < -100) {
+            obs.remove();
+            clearInterval(move);
+          }
+        }, 16);
+      }
+
+      function gameOver() {
+        gameRunning = false;
+        scoreEl.textContent = "Game Over! Score: " + score;
+      }
+
+      // main physics loop
+      setInterval(() => {
+        if (!window.gameStarted) return; // NEW
+        if (window.gamePaused) return;
+        if (!gameRunning) return;
+
+        yVelocity += CONFIG.gravity;
+
+        const currentBottom = parseFloat(getComputedStyle(player).bottom);
+        let newBottom = currentBottom - yVelocity;
+
+        if (newBottom <= 50) {
+          newBottom = 50;
+          yVelocity = 0;
+          onGround = true;
+        }
+
+        player.style.bottom = newBottom + "px";
+
+        score += 1;
+        scoreEl.textContent = "Score: " + score;
+      }, 16);
+
+      // obstacle spawner
+      let spawner = setInterval(() => {
+        if (!window.gameStarted) return; // NEW
+        if (window.gamePaused) return;
+        if (gameRunning) createObstacle();
+      }, CONFIG.spawnRate);
+
+      // controls
+      const speedInput = document.getElementById("speed");
+      const gravityInput = document.getElementById("gravity");
+      const jumpInput = document.getElementById("jump");
+      const spawnInput = document.getElementById("spawnRate");
+
+      const speedVal = document.getElementById("speedVal");
+      const gravityVal = document.getElementById("gravityVal");
+      const jumpVal = document.getElementById("jumpVal");
+      const spawnVal = document.getElementById("spawnVal");
+
+      function updateLabels() {
+        speedVal.textContent = CONFIG.speed;
+        gravityVal.textContent = CONFIG.gravity.toFixed(1);
+        jumpVal.textContent = CONFIG.jumpForce;
+        spawnVal.textContent = CONFIG.spawnRate;
+      }
+
+      speedInput.oninput = () => {
+        CONFIG.speed = Number(speedInput.value);
+        updateLabels();
+      };
+
+      gravityInput.oninput = () => {
+        CONFIG.gravity = Number(gravityInput.value);
+        updateLabels();
+      };
+
+      jumpInput.oninput = () => {
+        CONFIG.jumpForce = Number(jumpInput.value);
+        updateLabels();
+      };
+
+      spawnInput.oninput = () => {
+        CONFIG.spawnRate = Number(spawnInput.value);
+        clearInterval(spawner);
+        spawner = setInterval(() => {
+          if (!window.gameStarted) return; // NEW
+          if (window.gamePaused) return;
+          if (gameRunning) createObstacle();
+        }, CONFIG.spawnRate);
+        updateLabels();
+      };
+
+      document.getElementById("restartBtn").onclick = () => {
+        window.gamePaused = false;
+        window.gameStarted = false; // NEW
+        location.reload();
+      };
+
+      speedInput.value = CONFIG.speed;
+      gravityInput.value = CONFIG.gravity;
+      jumpInput.value = CONFIG.jumpForce;
+      spawnInput.value = CONFIG.spawnRate;
+      updateLabels();
+    </script>
+  </body>
+</html> -->
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -68,7 +622,6 @@
         color: white;
       }
 
-      /* Right side control panel */
       #controlPanel {
         position: absolute;
         top: 20px;
@@ -128,7 +681,6 @@
 
       <div class="score" id="score">Score: 0</div>
 
-      <!-- Control Panel -->
       <div id="controlPanel">
         <h3>Game Controls</h3>
 
@@ -157,7 +709,6 @@
     </div>
 
     <script>
-      // Read query params for AI config
       const params = new URLSearchParams(location.search);
 
       const CONFIG = {
@@ -165,21 +716,20 @@
         gravity: Number(params.get("gravity") || 1.2),
         jumpForce: Number(params.get("jump") || 20),
         spawnRate: Number(params.get("spawnRate") || 1200),
+
         playerIcon: params.get("playerIcon") || "",
         obstacleIcon: params.get("obstacleIcon") || "",
+
         playerColor: params.get("playerColor") || "#38bdf8",
         obstacleColor: params.get("obstacleColor") || "#f87171",
         backgroundColor: params.get("backgroundColor") || "#1e293b",
       };
 
-      // Apply theme colors
       document.getElementById("game").style.background = CONFIG.backgroundColor;
       document.getElementById("player").style.background = CONFIG.playerColor;
 
       const playerImg = document.getElementById("playerIcon");
-      if (CONFIG.playerIcon) {
-        playerImg.src = CONFIG.playerIcon;
-      }
+      if (CONFIG.playerIcon) playerImg.src = CONFIG.playerIcon;
 
       const game = document.getElementById("game");
       const player = document.getElementById("player");
@@ -189,8 +739,11 @@
       let onGround = true;
       let score = 0;
       let gameRunning = true;
+      let hasStarted = false;
 
       function jump() {
+        if (!gameRunning) return;
+        hasStarted = true;
         if (onGround) {
           yVelocity = -CONFIG.jumpForce;
           onGround = false;
@@ -206,16 +759,13 @@
         obs.classList.add("obstacle");
         obs.style.background = CONFIG.obstacleColor;
 
-        // random size
         const size = Math.random() * 20 + 35;
         obs.style.width = size + "px";
         obs.style.height = size + "px";
 
-        // icon
         if (CONFIG.obstacleIcon) {
           const img = document.createElement("img");
           img.src = CONFIG.obstacleIcon;
-          img.alt = "obstacle";
           obs.appendChild(img);
         }
 
@@ -230,6 +780,8 @@
             obs.remove();
             return;
           }
+
+          if (!hasStarted) return;
 
           x -= CONFIG.speed;
           obs.style.left = x + "px";
@@ -259,13 +811,16 @@
         scoreEl.textContent = "Game Over! Score: " + score;
       }
 
+      // main physics loop
       setInterval(() => {
         if (!gameRunning) return;
+        if (!hasStarted) return;
 
         yVelocity += CONFIG.gravity;
-        const currentBottom = parseFloat(getComputedStyle(player).bottom);
 
+        const currentBottom = parseFloat(getComputedStyle(player).bottom);
         let newBottom = currentBottom - yVelocity;
+
         if (newBottom <= 50) {
           newBottom = 50;
           yVelocity = 0;
@@ -278,11 +833,13 @@
         scoreEl.textContent = "Score: " + score;
       }, 16);
 
+      // obstacle spawner
       let spawner = setInterval(() => {
-        if (gameRunning) createObstacle();
+        if (!gameRunning) return;
+        if (hasStarted) createObstacle();
       }, CONFIG.spawnRate);
 
-      // UI Controls
+      // controls
       const speedInput = document.getElementById("speed");
       const gravityInput = document.getElementById("gravity");
       const jumpInput = document.getElementById("jump");
@@ -319,7 +876,8 @@
         CONFIG.spawnRate = Number(spawnInput.value);
         clearInterval(spawner);
         spawner = setInterval(() => {
-          if (gameRunning) createObstacle();
+          if (!gameRunning) return;
+          if (hasStarted) createObstacle();
         }, CONFIG.spawnRate);
         updateLabels();
       };
@@ -336,20 +894,3 @@
     </script>
   </body>
 </html>
-
-<!-- {
-  "game": "jump",
-  "config": {   
-    "speed": null,
-    "gravity": null,
-    "jumpForce": null,
-    "spawnRate": null,
-
-    "playerIcon": null,
-    "obstacleIcon": null,
-
-    "playerColor": null,
-    "obstacleColor": null,
-    "backgroundColor": null
-  }
-} -->
