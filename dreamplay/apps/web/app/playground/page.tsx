@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Gamepad2, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import Fuse from "fuse.js";
 
 export default function Playground() {
   useEffect(() => {
@@ -45,9 +46,41 @@ export default function Playground() {
   const searchParams = useSearchParams();
   const configRaw = searchParams.get("config");
 
+  const [fullConfig, setFullConfig] = useState<any>(null);
+
+  useEffect(() => {
+    if (!configRaw) {
+      console.warn("No config found in URL");
+      return;
+    }
+
+    try {
+      const decoded = JSON.parse(decodeURIComponent(configRaw));
+      setFullConfig(decoded);
+
+      console.log("==== FULL PLAYGROUND PAYLOAD ====");
+      console.log("refine:", decoded.refine);
+      //refine.choosen_game  : ( jump,collect,falling )
+      console.log("config:", decoded.config);
+      //   backgroundColor: "#3b82f6";
+      //   gravity: 0.45;
+      //   jumpForce: 12;
+      //   obstacleColor: "#64748b";
+      //   obstacleIcon: "knight";
+      //   playerColor: "#ef4444";
+      //   playerIcon: "dragon";
+      //   spawnRate: 1300;
+      //   speed: 7;
+      console.log("lessons:", decoded.lessons);
+      console.log("===============================");
+    } catch (err) {
+      console.error("Error decoding config:", err);
+    }
+  }, [configRaw]);
+
   // For iframe testing we will manually swap game src until AI wiring is ready
   const [gameSrc, setGameSrc] = useState(
-    "http://localhost:3000/games/falling.html?playerColor=red&playerIcon=https://api.iconify.design/fluent-emoji-flat/dog.svg&blockIcon=https://api.iconify.design/fluent-emoji-flat/rocket.svg"
+    "http://localhost:3000/games/collect.html?playerColor=red&playerIcon=https://api.iconify.design/fluent-emoji-flat/dog.svg&blockIcon=https://api.iconify.design/fluent-emoji-flat/rocket.svg"
   );
 
   return (
