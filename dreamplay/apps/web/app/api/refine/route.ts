@@ -193,7 +193,82 @@ FINAL REMINDERS
 Given the user idea, think carefully, apply these rules, choose status and chosen_game, then output only the JSON object.
 `;
 
-export async function POST(req: any) {
+// export async function POST(req: any) {
+//   const { prompt } = await req.json();
+
+//   const message = await anthropic.messages.create({
+//     model: "claude-sonnet-4-5",
+//     temperature: 0.3,
+//     max_tokens: 350,
+//     system: SYSTEM_PROMPT,
+//     messages: [
+//       {
+//         role: "user",
+//         content: `User idea: "${prompt}". Output only the JSON object.`,
+//       },
+//     ],
+//   });
+
+//   const block = message.content?.[0];
+
+//   if (!block || block.type !== "text") {
+//     return NextResponse.json(
+//       { error: "Invalid response from model" },
+//       { status: 500 }
+//     );
+//   }
+
+//   let raw = block.text || "";
+
+//   // Remove accidental fences or stray formatting
+//   raw = raw
+//     .replace(/```json/gi, "")
+//     .replace(/```/g, "")
+//     .trim();
+
+//   let parsed;
+
+//   try {
+//     parsed = JSON.parse(raw);
+//   } catch (e) {
+//     return NextResponse.json(
+//       { error: "Model returned invalid JSON", raw },
+//       { status: 500 }
+//     );
+//   }
+
+//   return NextResponse.json(parsed);
+// }
+
+// simple in memory log
+const logMap = new Map<string, string>();
+
+const myIP = "72.72.142.300";
+
+export async function POST(req: Request) {
+  // detect client ip
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  // bypass for your ip
+  if (ip !== myIP) {
+    const today = new Date().toDateString();
+    const last = logMap.get(ip);
+
+    // first request today
+    if (!last) {
+      logMap.set(ip, today);
+    } else if (last !== today) {
+      logMap.set(ip, today);
+    } else {
+      return NextResponse.json(
+        { error: "Only one game generation allowed per day" },
+        { status: 429 }
+      );
+    }
+  }
+
+  // normal refine logic
   const { prompt } = await req.json();
 
   const message = await anthropic.messages.create({
@@ -220,7 +295,6 @@ export async function POST(req: any) {
 
   let raw = block.text || "";
 
-  // Remove accidental fences or stray formatting
   raw = raw
     .replace(/```json/gi, "")
     .replace(/```/g, "")
