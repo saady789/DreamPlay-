@@ -154,6 +154,15 @@ export default function Chat() {
         body: JSON.stringify({ prompt: trimmed }),
       });
 
+      // if IP limit hit
+      if (refineRes.status === 429) {
+        setnewisLoading(false);
+        toast.error("Limit reached", {
+          description: "Only one game idea allowed each day on this device.",
+        });
+        return;
+      }
+
       if (!refineRes.ok) {
         setnewisLoading(false);
         toast.error("Server error", {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
+import MobileGuard from "@/components/MobileGuard";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -25,8 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-        <Toaster position="top-center" theme="dark" closeButton richColors />
+        <MobileGuard>
+          {children}
+          <Toaster position="top-center" theme="dark" closeButton richColors />
+        </MobileGuard>
       </body>
     </html>
   );

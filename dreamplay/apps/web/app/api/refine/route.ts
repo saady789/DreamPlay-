@@ -23,40 +23,21 @@ You can only use these three internal game templates:
 
 1. "collect"
    - The player moves left and right (or in simple up and down).
-   - They collect good items that appear or fall.
-   - They may avoid bad items or hazards.
+   - They collect good items that appear.
+   - They may avoid bad items or hazards while moving.
 
 2. "falling"
    - Objects fall from the top of the screen.
-   - The player catches good things or dodges bad things.
-   - The main feeling is rain or shower of objects.
+   - The player dodges the objects in order to survive.
 
 3. "jump"
    - Side view runner or platformer.
    - The player moves forward and jumps over gaps or obstacles.
-   - Main mechanic is timing jumps to survive or collect things.
+   - Main mechanic is timing jumps to survive obstacles.
 
 You are not allowed to invent other engines.
 You must always pick one of these three or reject the idea.
 
-
-====================
-WHAT COUNTS AS A VALID IDEA
-====================
-
-The user idea must clearly contain, in plain language:
-
-1. A hero or main character that the player controls  
-   - Example: a cat, a robot, a dragon, a kid, a penguin.
-
-2. A primary action for the player to do  
-   - Example: jumping, dodging, catching, sliding, collecting.
-
-3. At least one hazard or danger to avoid  
-   - Example: lasers, spikes, meteors, cars, enemies, fire, holes.
-
-4. At least one positive goal or collectible  
-   - Example: stars, coins, books, fish, points, candy.
 
 If any of these four elements is missing, extremely vague, or only barely implied, treat the idea as not ready and return status 0.
 
@@ -81,7 +62,7 @@ Return status 0 and a personalized explanation if:
 
 5. The content is clearly unsafe for kids  
    - Strong gore, serious harm, disturbing or adult themes.
-
+6. The idea is vague or makes no sense 
 
 ====================
 STYLE OF REJECTION TEXT
@@ -121,10 +102,8 @@ WHEN TO ACCEPT
 Accept the idea and return status 1 if:
 
 1. You can clearly identify a hero or player.
-2. You can clearly see a main action that fits one of the three templates.
-3. You can clearly see at least one hazard or danger.
-4. You can clearly see at least one goal or collectible.
-5. You can reasonably simplify the idea into a small arcade style loop.
+2. You can clearly see a main action that fits one of the three templates. Again remember we have to map the sentence to one of the 3 game templates that is core
+3. You can reasonably simplify the idea into a small arcade style loop.
 
 If the idea is a bit messy but can be cleaned into a simple pattern, you should accept it, simplify it, and return status 1.
 
@@ -214,7 +193,82 @@ FINAL REMINDERS
 Given the user idea, think carefully, apply these rules, choose status and chosen_game, then output only the JSON object.
 `;
 
-export async function POST(req: any) {
+// export async function POST(req: any) {
+//   const { prompt } = await req.json();
+
+//   const message = await anthropic.messages.create({
+//     model: "claude-sonnet-4-5",
+//     temperature: 0.3,
+//     max_tokens: 350,
+//     system: SYSTEM_PROMPT,
+//     messages: [
+//       {
+//         role: "user",
+//         content: `User idea: "${prompt}". Output only the JSON object.`,
+//       },
+//     ],
+//   });
+
+//   const block = message.content?.[0];
+
+//   if (!block || block.type !== "text") {
+//     return NextResponse.json(
+//       { error: "Invalid response from model" },
+//       { status: 500 }
+//     );
+//   }
+
+//   let raw = block.text || "";
+
+//   // Remove accidental fences or stray formatting
+//   raw = raw
+//     .replace(/```json/gi, "")
+//     .replace(/```/g, "")
+//     .trim();
+
+//   let parsed;
+
+//   try {
+//     parsed = JSON.parse(raw);
+//   } catch (e) {
+//     return NextResponse.json(
+//       { error: "Model returned invalid JSON", raw },
+//       { status: 500 }
+//     );
+//   }
+
+//   return NextResponse.json(parsed);
+// }
+
+// simple in memory log
+const logMap = new Map<string, string>();
+
+const myIP = "72.72.142.300";
+
+export async function POST(req: Request) {
+  // detect client ip
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  // bypass for your ip
+  if (ip !== myIP) {
+    const today = new Date().toDateString();
+    const last = logMap.get(ip);
+
+    // first request today
+    if (!last) {
+      logMap.set(ip, today);
+    } else if (last !== today) {
+      logMap.set(ip, today);
+    } else {
+      return NextResponse.json(
+        { error: "Only one game generation allowed per day" },
+        { status: 429 }
+      );
+    }
+  }
+
+  // normal refine logic
   const { prompt } = await req.json();
 
   const message = await anthropic.messages.create({
@@ -241,7 +295,6 @@ export async function POST(req: any) {
 
   let raw = block.text || "";
 
-  // Remove accidental fences or stray formatting
   raw = raw
     .replace(/```json/gi, "")
     .replace(/```/g, "")
